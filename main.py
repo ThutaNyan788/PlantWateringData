@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
-import numpy as np
+import pandas as pd
 
 # Load trained ML model
 model = joblib.load("pump_model.pkl")
@@ -18,13 +18,15 @@ class SensorData(BaseModel):
 # ================= API ENDPOINT =================
 @app.post("/esp32/button")
 def predict_pump(data: SensorData):
-    features = np.array([[
-        data.soil,
-        data.temperature,
-        data.humidity
-    ]])
+    # IMPORTANT: feature names must match training exactly
+    print(data)
+    X = pd.DataFrame([{
+        "soil": data.soil_moisture,
+        "temperature": data.temperature,
+        "humidity": data.humidity
+    }])
 
-    prediction = int(model.predict(features)[0])
+    prediction = int(model.predict(X)[0])
 
     return {
         "pump": prediction
